@@ -27,17 +27,17 @@
     }
 
     button {
-      background: #5d76cb; /* Белый фон */
-      color: #d6e4ff; /* Цвет текста лазурный */
+      background: #5d76cb; 
+      color: #d6e4ff; 
       border: none;
       padding: 10px 20px;
       cursor: pointer;
-      border-radius: 5px; /* Скругление краев */
+      border-radius: 5px; 
     }
 
     button:hover {
-      background: #70a1ff; /* Лазурный фон при наведении */
-      color: #fff; /* Белый текст при наведении */
+      background: #70a1ff; 
+      color: #fff; 
     }
 
     input[type="file"],
@@ -96,7 +96,7 @@
 
     <div class="white-bottom"></div>
   </nav>
-<!-- Контейнер для графиков -->
+
 <div style="width: 80%; margin: auto;">
   <canvas id="classChart"></canvas>
   <canvas id="subjectChart"></canvas>
@@ -165,11 +165,11 @@
     const rows = content.split('\n');
     const students = [];
 
-    // Заполнение массива students данными из файла со второй строки
+
     for (let i = 1; i < rows.length; i++) {
       const values = rows[i].split(';');
 
-      // Проверка наличия нужного числа значений
+
       if (values.length >= 7) {
         const student = {
           name: values[0].trim(),
@@ -184,7 +184,7 @@
       }
     }
 
-    // Рассчет статистики
+
     const statistics = calculateStatistics(students);
 
     // Отображение статистики в виде графиков
@@ -254,7 +254,7 @@
     document.body.classList.toggle('dark-theme');
   }
 
-  // Добавлен код для применения сохраненной темы при загрузке страницы
+
   document.addEventListener('DOMContentLoaded', function () {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
