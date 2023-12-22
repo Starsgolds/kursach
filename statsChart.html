@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Статистика (графическая)</title>
+  <!-- Подключение библиотеки Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      transition: background-color 0.5s;
+      background: linear-gradient(to bottom, #70a1ff, #ffffff);
+      color: #333;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      height: 100vh;
+    }
+
+
+
+    nav {
+      display: flex;
+
+      align-items: center;
+
+      padding: 10px 0;
+    }
+
+    button {
+      background: #5d76cb; /* Белый фон */
+      color: #d6e4ff; /* Цвет текста лазурный */
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px; /* Скругление краев */
+    }
+
+    button:hover {
+      background: #70a1ff; /* Лазурный фон при наведении */
+      color: #fff; /* Белый текст при наведении */
+    }
+
+    input[type="file"],
+    #loadButton {
+      margin-top: 20px;
+      background: #fff;
+      color: #70a1ff;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+
+    input[type="file"]:hover,
+    #loadButton:hover {
+      background: #70a1ff;
+      color: #fff;
+    }
+
+    #uploadedTable {
+      margin-top: 20px;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+
+
+
+
+    #themeToggle:hover {
+      background: #333;
+    }
+
+
+
+    body.dark-theme {
+      background: #000;
+      color: #fff;
+    }
+
+    body.dark-theme #themeToggle,
+    body.dark-theme .white-bottom {
+      background: #000;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <button onclick="loadTab('edit.html')">Редактирование журнала</button>
+    <button onclick="loadTab('statsTable.html')">Статистика (табличная)</button>
+    <button onclick="loadTab('statsChart.html')">Статистика (графическая)</button>
+    <button onclick="loadTab('help.html')">Помощь</button>
+    <button onclick="loadTab('about.html')">О программе</button>
+
+    <button id="themeToggle" onclick="toggleTheme()">Сменить тему</button>
+
+    <div class="white-bottom"></div>
+  </nav>
+<!-- Контейнер для графиков -->
+<div style="width: 80%; margin: auto;">
+  <canvas id="classChart"></canvas>
+  <canvas id="subjectChart"></canvas>
+</div>
+
+<script>
+  // Функция для перехода на другую страницу
+  function loadTab(tabName) {
+    window.location.href = tabName;
+  }
+
+  // Функция для расчета статистики
+  function calculateStatistics(students) {
+    const classStatistics = {};
+    const subjectStatistics = {};
+
+    for (const student of students) {
+      // Расчет средней оценки по классам
+      if (!classStatistics[student.class]) {
+        classStatistics[student.class] = {
+          sum: 0,
+          count: 0
+        };
+      }
+      classStatistics[student.class].sum += (student.informatics + student.physics + student.mathematics +
+        student.literature + student.music);
+      classStatistics[student.class].count += 5; // 5 subjects
+
+      // Расчет средней оценки по предметам
+      if (!subjectStatistics[student.name]) {
+        subjectStatistics[student.name] = {
+          sum: 0,
+          count: 0
+        };
+      }
+      subjectStatistics[student.name].sum += student.informatics + student.physics + student.mathematics +
+        student.literature + student.music;
+      subjectStatistics[student.name].count += 5;
+    }
+
+    // Преобразование данных в формат для графика
+    const classAverages = [];
+    for (const cls in classStatistics) {
+      if (classStatistics.hasOwnProperty(cls)) {
+        const average = classStatistics[cls].sum / classStatistics[cls].count;
+        classAverages.push({ class: cls, average: average });
+      }
+    }
+
+    const subjectAverages = [];
+    for (const subject in subjectStatistics) {
+      if (subjectStatistics.hasOwnProperty(subject)) {
+        const average = subjectStatistics[subject].sum / subjectStatistics[subject].count;
+        subjectAverages.push({ subject: subject, average: average });
+      }
+    }
+
+    return { classAverages, subjectAverages };
+  }
+
+  // Получение данных из локального хранилища
+  const fileData = localStorage.getItem('fileData');
+
+  if (fileData) {
+    const content = fileData;
+    const rows = content.split('\n');
+    const students = [];
+
+    // Заполнение массива students данными из файла со второй строки
+    for (let i = 1; i < rows.length; i++) {
+      const values = rows[i].split(';');
+
+      // Проверка наличия нужного числа значений
+      if (values.length >= 7) {
+        const student = {
+          name: values[0].trim(),
+          class: values[1].trim(),
+          informatics: parseInt(values[2].trim()),
+          physics: parseInt(values[3].trim()),
+          mathematics: parseInt(values[4].trim()),
+          literature: parseInt(values[5].trim()),
+          music: parseInt(values[6].trim())
+        };
+        students.push(student);
+      }
+    }
+
+    // Рассчет статистики
+    const statistics = calculateStatistics(students);
+
+    // Отображение статистики в виде графиков
+    displayCharts(statistics);
+  }
+
+  function displayCharts(statistics) {
+    // График для средней оценки по классам
+    const classLabels = statistics.classAverages.map(stat => stat.class);
+    const classAverages = statistics.classAverages.map(stat => stat.average);
+
+    const classChartCtx = document.getElementById('classChart').getContext('2d');
+    new Chart(classChartCtx, {
+      type: 'bar',
+      data: {
+        labels: classLabels,
+        datasets: [{
+          label: 'Average Grade by Class',
+          data: classAverages,
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    // График для средней оценки по предметам
+    const subjectLabels = statistics.subjectAverages.map(stat => stat.subject);
+    const subjectAverages = statistics.subjectAverages.map(stat => stat.average);
+
+    const subjectChartCtx = document.getElementById('subjectChart').getContext('2d');
+    new Chart(subjectChartCtx, {
+      type: 'bar',
+      data: {
+        labels: subjectLabels,
+        datasets: [{
+          label: 'Average Grade by Subject',
+          data: subjectAverages,
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          borderColor: 'rgba(255, 99, 132, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+
+ 
+    function loadTab(tabName) {
+      window.location.href = tabName;
+    }
+
+  function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+  }
+
+  // Добавлен код для применения сохраненной темы при загрузке страницы
+  document.addEventListener('DOMContentLoaded', function () {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      document.body.classList.add(savedTheme);
+    }
+  });
+</script>
+
+</body>
+</html>

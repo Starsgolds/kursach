@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Журнал оценок</title>
+
+  <style>
+    body {
+      transition: background-color 0.5s;
+      background: linear-gradient(to bottom, #70a1ff, #ffffff);
+      color: #333;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      height: 100vh;
+    }
+
+
+
+    nav {
+      display: flex;
+
+      align-items: center;
+
+      padding: 10px 0;
+    }
+
+    button {
+      background: #5d76cb; /* Белый фон */
+      color: #d6e4ff; /* Цвет текста лазурный */
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px; /* Скругление краев */
+    }
+
+    button:hover {
+      background: #70a1ff; /* Лазурный фон при наведении */
+      color: #fff; /* Белый текст при наведении */
+    }
+
+    input[type="file"],
+    #loadButton {
+      margin-top: 20px;
+      background: #5d76cb;
+      color: #d6e4ff;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px; /* Скругление краев */
+    }
+
+    input[type="file"]:hover,
+    #loadButton:hover {
+      background: #70a1ff;
+      color: #fff;
+    }
+
+
+    #uploadedTable {
+      margin-top: 20px;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+
+
+
+
+    #themeToggle:hover {
+      background: #333;
+    }
+
+
+
+    body.dark-theme {
+      background: #000;
+      color: #fff;
+    }
+
+    body.dark-theme #themeToggle,
+    body.dark-theme .white-bottom {
+      background: #000;
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="wrapper">
+    <nav>
+      <button onclick="loadTab('edit.html')">Редактирование журнала</button>
+      <button onclick="loadTab('statsTable.html')">Статистика (табличная)</button>
+      <button onclick="loadTab('statsChart.html')">Статистика (графическая)</button>
+      <button onclick="loadTab('help.html')">Помощь</button>
+      <button onclick="loadTab('about.html')">О программе</button>
+    </nav>
+
+    <!-- Форма для загрузки файла -->
+    <input type="file" id="fileInput" accept=".csv, .txt, .xlsx">
+    <button id="loadButton" onclick="loadFile()">Загрузить файл</button>
+
+ 
+    <button id="themeToggle" onclick="toggleTheme()">Сменить тему</button>
+
+    <div class="white-bottom"></div>
+  </div>
+
+  <script>
+    function loadFile() {
+      const fileInput = document.getElementById('fileInput');
+
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          const content = e.target.result;
+          localStorage.setItem('fileData', content);
+          loadTab('edit.html');
+        };
+
+        reader.readAsText(file);
+      } else {
+        alert('Выберите файл для загрузки.');
+      }
+    }
+
+    function loadTab(tabName) {
+      window.location.href = tabName;
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark-theme');
+    }
+
+    // Добавлен код для применения сохраненной темы при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function () {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.body.classList.add(savedTheme);
+      }
+    });
+    function toggleTheme() {
+      document.body.classList.toggle('dark-theme');
+    }
+
+    // Добавлен код для применения сохраненной темы при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function () {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.body.classList.add(savedTheme);
+      }
+    });
+  </script>
+
+</body>
+
+</html>
+

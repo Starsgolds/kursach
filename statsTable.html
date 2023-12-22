@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Статистика (табличная)</title>
+  <style>
+    body {
+      transition: background-color 0.5s;
+      background: linear-gradient(to bottom, #70a1ff, #ffffff);
+      color: #333;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      height: 100vh;
+    }
+
+
+
+    nav {
+      display: flex;
+
+      align-items: center;
+
+      padding: 10px 0;
+    }
+
+    button {
+      background: #5d76cb; /* Белый фон */
+      color: #d6e4ff; /* Цвет текста лазурный */
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px; /* Скругление краев */
+    }
+
+    button:hover {
+      background: #70a1ff; /* Лазурный фон при наведении */
+      color: #fff; /* Белый текст при наведении */
+    }
+
+    input[type="file"],
+    #loadButton {
+      margin-top: 20px;
+      background: #fff;
+      color: #70a1ff;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+
+    input[type="file"]:hover,
+    #loadButton:hover {
+      background: #70a1ff;
+      color: #fff;
+    }
+
+    #uploadedTable {
+      margin-top: 20px;
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+
+
+
+
+    #themeToggle:hover {
+      background: #333;
+    }
+
+
+
+    body.dark-theme {
+      background: #000;
+      color: #fff;
+    }
+
+    body.dark-theme #themeToggle,
+    body.dark-theme .white-bottom {
+      background: #000;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <button onclick="loadTab('edit.html')">Редактирование журнала</button>
+    <button onclick="loadTab('statsTable.html')">Статистика (табличная)</button>
+    <button onclick="loadTab('statsChart.html')">Статистика (графическая)</button>
+    <button onclick="loadTab('help.html')">Помощь</button>
+    <button onclick="loadTab('about.html')">О программе</button>
+
+    <button id="themeToggle" onclick="toggleTheme()">Сменить тему</button>
+
+    <div class="white-bottom"></div>
+  </nav>
+<!-- Таблица для отображения статистики -->
+<table id="statsTable" border="1">
+  <thead>
+    <tr>
+      <th>Class</th>
+      <th>Subject</th>
+      <th>Average</th>
+      <th>Median</th>
+      <th>Count</th>
+      <th>Percentage</th>
+    </tr>
+  </thead>
+  <tbody id="statsTableBody"></tbody>
+</table>
+
+<script>
+  // Функция для перехода на другую страницу
+  function loadTab(tabName) {
+    window.location.href = tabName;
+  }
+
+  // Получение данных из локального хранилища
+  const fileData = localStorage.getItem('fileData');
+
+  if (fileData) {
+    const content = fileData;
+    const rows = content.split('\n');
+    const students = [];
+
+    // Заполнение массива students данными из файла со второй строки
+    for (let i = 1; i < rows.length; i++) {
+      const values = rows[i].split(';');
+
+      // Проверка наличия нужного числа значений
+      if (values.length >= 7) {
+        const student = {
+          name: values[0].trim(),
+          class: values[1].trim(),
+          informatics: parseInt(values[2].trim()),
+          physics: parseInt(values[3].trim()),
+          mathematics: parseInt(values[4].trim()),
+          literature: parseInt(values[5].trim()),
+          music: parseInt(values[6].trim())
+        };
+        students.push(student);
+      }
+    }
+
+    // Рассчет статистики
+    const statistics = calculateStatistics(students);
+
+    // Отображение статистики в таблице
+    displayStatistics(statistics);
+  }
+
+
+  
+
+
+
+  function calculateStatistics(students) {
+    const subjects = ['informatics', 'physics', 'mathematics', 'literature', 'music'];
+    const classes = [...new Set(students.map(student => student.class))];
+    const statistics = [];
+
+    // Для каждого класса и каждого предмета рассчитываем статистику
+    for (const studentClass of classes) {
+      for (const subject of subjects) {
+        const classStudents = students.filter(student => student.class === studentClass);
+        const subjectGrades = classStudents.map(student => student[subject]);
+        const average = calculateAverage(subjectGrades);
+        const median = calculateMedian(subjectGrades);
+        const count = subjectGrades.length;
+        const percentage = calculatePercentage(subjectGrades, count);
+
+        statistics.push({
+          class: studentClass,
+          subject: subject,
+          average: average,
+          median: median,
+          count: count,
+          percentage: percentage
+        });
+      }
+    }
+
+    // Для каждого предмета рассчитываем общую статистику
+    for (const subject of subjects) {
+      const allGrades = students.map(student => student[subject]);
+      const average = calculateAverage(allGrades);
+      const median = calculateMedian(allGrades);
+      const count = allGrades.length;
+      const percentage = calculatePercentage(allGrades, count);
+
+      statistics.push({
+        class: 'All',
+        subject: subject,
+        average: average,
+        median: median,
+        count: count,
+        percentage: percentage
+      });
+    }
+
+    return statistics;
+  }
+
+  // Функция для расчета средней оценки
+  function calculateAverage(grades) {
+    const sum = grades.reduce((acc, grade) => acc + grade, 0);
+    return sum / grades.length || 0;
+  }
+
+  // Функция для расчета медианы
+  function calculateMedian(grades) {
+    const sortedGrades = grades.slice().sort((a, b) => a - b);
+    const middle = Math.floor(sortedGrades.length / 2);
+    return sortedGrades.length % 2 === 0
+      ? (sortedGrades[middle - 1] + sortedGrades[middle]) / 2
+      : sortedGrades[middle];
+  }
+
+  // Функция для расчета процента учеников для каждой оценки
+  function calculatePercentage(grades, totalCount) {
+    const counts = {};
+    grades.forEach(grade => {
+      counts[grade] = (counts[grade] || 0) + 1;
+    });
+
+    const percentages = {};
+    Object.keys(counts).forEach(grade => {
+      percentages[grade] = ((counts[grade] / totalCount) * 100).toFixed(2) + '%';
+    });
+
+    return percentages;
+  }
+
+  // Функция для отображения статистики в таблице
+  function displayStatistics(statistics) {
+    const statsTableBody = document.getElementById('statsTableBody');
+
+    statistics.forEach(stat => {
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>${stat.class}</td>
+                      <td>${stat.subject}</td>
+                      <td>${stat.average.toFixed(2)}</td>
+                      <td>${stat.median.toFixed(2)}</td>
+                      <td>${stat.count}</td>
+                      <td>${JSON.stringify(stat.percentage)}</td>`;
+      statsTableBody.appendChild(row);
+    });
+  }
+  function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+  }
+
+  // Добавлен код для применения сохраненной темы при загрузке страницы
+  document.addEventListener('DOMContentLoaded', function () {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      document.body.classList.add(savedTheme);
+    }
+  });
+</script>
+
+</body>
+</html>
+
